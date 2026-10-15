@@ -22,7 +22,12 @@ def build_pipeline():
     
     print("Writing records into 'energy_weather_data' table...")
     df.to_sql('energy_weather_data', engine, if_exists='replace', index=False)
-    print("Database write complete.")
+    
+    # Create an index on the time column for fast querying
+    with engine.begin() as conn:
+        conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS idx_energy_weather_time ON energy_weather_data(time);")
+    
+    print(f"Database write complete: {len(df):,} records indexed in 'energy_weather_data'.")
     
     # ---------------------------------------------------------
     # Sanity Check: Inspecting Generation Mix & Spot Prices

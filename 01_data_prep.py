@@ -34,20 +34,46 @@ def prep_data():
 
     print("Merging grid generation, demand, and price data with weather indicators...")
     merged_df = pd.merge(energy_df, weather_agg, on='time', how='inner')
+    merged_df = merged_df.sort_values('time').reset_index(drop=True)
 
     print("Cleaning nulls and handling missing sensor data...")
     # Drop columns that are mostly empty (e.g., offshore wind which has zero Spanish capacity in this period)
     threshold = len(merged_df) * 0.5
     merged_df.dropna(thresh=threshold, axis=1, inplace=True)
 
-    # For time-series consistency, I use forward-fill to handle minor telemetry dropouts,
-    # followed by back-fill for any residual initial NaNs, avoiding lookahead leakage.
+    # For time-series consistency, I use forward-fill only (ffill).
+    # I strictly avoid back-fill (bfill) to prevent information from future observations leaking backward.
     merged_df.ffill(inplace=True)
-    merged_df.bfill(inplace=True)
+
+    # Inspect if any missing values remain after forward-filling
+    remaining_nulls = merged_df.isnull().sum()
+    if remaining_nulls.sum() > 0:
+        print("\nRemaining missing values after forward-filling:")
+        print(remaining_nulls[remaining_nulls > 0].head(10))
+        # Drop any remaining unfillable leading rows to ensure zero lookahead contamination
+        merged_df.dropna(inplace=True)
+    else:
+        print("Verified: 0 missing values remain after forward-fill. No future back-filling needed.")
+
+    # ---------------------------------------------------------
+    # Pipeline Data Validation Checks
+    # ---------------------------------------------------------
+    is_monotonic = merged_df['time'].is_monotonic_increasing
+    duplicate_count = merged_df['time'].duplicated().sum()
+    null_count = merged_df.isnull().sum().sum()
+    retained_pct = (len(merged_df) / len(energy_df)) * 100
+
+    print("\n--- Pipeline Data Validation ---")
+    print(f"Dataset shape: {merged_df.shape}")
+    print(f"Chronologically sorted: {is_monotonic}")
+    print(f"Duplicate timestamps: {duplicate_count}")
+    print(f"Missing values after cleaning: {null_count}")
+    print(f"Date range: {merged_df['time'].min()} to {merged_df['time'].max()}")
+    print(f"Rows retained from energy dataset: {len(merged_df)} / {len(energy_df)} ({retained_pct:.1f}% matched)")
 
     output_filename = 'cleaned_energy_weather.csv'
     merged_df.to_csv(output_filename, index=False)
-    print(f"Data cleaning complete! Processed dataset saved to '{output_filename}'.")
+    print(f"\nData cleaning complete! Processed dataset saved to '{output_filename}'.")
 
 if __name__ == "__main__":
     prep_data()
