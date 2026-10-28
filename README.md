@@ -39,7 +39,7 @@ To answer these, I pulled 4 full years (2015–2018) of hourly generation by fue
        │
        ▼
 [Visualization & Analytics]
-  • Rystad_Portfolio.ipynb (Deep-dive walkthrough with market commentary & charts)
+  • Energy_Market_Analytics.ipynb (Deep-dive walkthrough with market commentary & charts)
   • Power BI Executive Dashboard (Interactive dark-theme trading view with KPI cards & slicers)
 ```
 
@@ -103,12 +103,13 @@ For a live trading desk deployment, the following data feeds would be required t
 
 ## Project Structure
 
-* `01_data_prep.py` — Cleans raw Kaggle data, aggregates multi-city weather, handles missing values.
-* `02_sql_pipeline.py` — Ingests cleaned data into `energy_market.db` with validation queries.
-* `03_forecasting_model.py` — Extracts rolling features, splits chronologically, trains XGBoost model, outputs `predictions.csv`.
-* `Rystad_Portfolio.ipynb` — My interactive notebook walkthrough with dark-theme visual analytics and market commentary.
+* `01_data_prep.py` — Cleans raw data, aggregates multi-city weather, handles missing values, and validates timestamps.
+* `02_sql_pipeline.py` — Ingests cleaned data into `energy_market.db` with structured indexes and validation queries.
+* `03_forecasting_model.py` — Extracts rolling features, splits chronologically, trains XGBoost model, and outputs predictions.
+* `Energy_Market_Analytics.ipynb` — My interactive notebook walkthrough with dark-theme visual analytics and market commentary.
 * `Energy Market Forecasting.pbix` — Interactive Power BI dashboard layout built with custom dark palette (`Theme.json`).
 * `power bi dashboard.png` — Screenshot preview of my finished Power BI dashboard.
+* `power_bi_data_fixed.xlsx` — Excel dataset formatted for direct Power BI Desktop ingestion.
 * `energy_market.db` — SQLite database housing the processed tables and prediction views.
 
 ---
@@ -129,6 +130,6 @@ python 02_sql_pipeline.py
 python 03_forecasting_model.py
 
 # 5. Open the analysis notebook or Power BI report
-jupyter notebook Rystad_Portfolio.ipynb
+jupyter notebook Energy_Market_Analytics.ipynb
 # Or open 'Energy Market Forecasting.pbix' in Power BI Desktop
 ```
